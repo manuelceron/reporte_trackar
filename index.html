@@ -2,64 +2,52 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reporte Traccar</title>
+    <title>Enviar reporte a Traccar</title>
 </head>
 <body>
-    <input type="text" id="deviceId" placeholder="Ingresa el ID del dispositivo"><br>
-    <input type="text" id="ipAddress" placeholder="Ingresa la IP"><br>
-    <input type="text" id="port" placeholder="Ingresa el puerto"><br>
-    <button onclick="sendReport()">Enviar reporte</button>
+    <h2>Formulario de reporte a Traccar</h2>
+
+    <label>ID del dispositivo:</label><br>
+    <input type="text" id="deviceId" placeholder="Ej. 123456789012345"><br><br>
+
+    <label>IP del servidor Traccar:</label><br>
+    <input type="text" id="ipAddress" placeholder="Ej. 192.168.1.100"><br><br>
+
+    <button onclick="generarURL()">Obtener ubicación y generar URL</button>
+
+    <div id="resultado" style="margin-top:20px; font-family:sans-serif;"></div>
 
     <script>
-        function sendReport() {
-            const idInput = document.getElementById('deviceId').value;
-            const ipInput = document.getElementById('ipAddress').value;
-            const portInput = document.getElementById('port').value;
+        function generarURL() {
+            const id = document.getElementById('deviceId').value.trim();
+            const ip = document.getElementById('ipAddress').value.trim();
+            const puerto = 5055;
+            const resultado = document.getElementById('resultado');
 
-            // Verificar si los campos IP, puerto e ID están completos
-            if (!idInput || !ipInput || !portInput) {
-                console.error('Por favor, complete todos los campos');
+            if (!id || !ip) {
+                resultado.innerHTML = '<span style="color:red;">Por favor, completa todos los campos.</span>';
                 return;
             }
 
-            // Verificar si el navegador soporta la geolocalización
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-                    const altitude = position.coords.altitude || 0;
-                    const speed = position.coords.speed || 0;
-                    const accuracy = position.coords.accuracy || 0;
-                    const bearing = position.coords.heading || 0;
-                    const timestamp = Math.floor(Date.now() / 1000); // Obtener el timestamp actual en segundos
-                    const battery = 81.0; // Ajustar este valor si es necesario
-                    
-                    const url = `https://${ipInput}:${portInput}/?id=${idInput}&timestamp=${timestamp}&lat=${latitude}&lon=${longitude}&speed=${speed}&bearing=${bearing}&altitude=${altitude}&accuracy=${accuracy}&batt=${battery}`;
-                    
-                    fetch(url, {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 14; V2349 Build/UP1A.231005.007)',
-                            'Connection': 'Keep-Alive',
-                            'Accept-Encoding': 'gzip'
-                        }
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            console.log('Reporte enviado con éxito');
-                        } else {
-                            console.error('Error al enviar el reporte');
-                        }
-                    })
-                    .catch(error => console.error('Error en la solicitud:', error));
-                }, (error) => {
-                    console.error('Error al obtener la posición:', error);
-                });
-            } else {
-                console.error('La geolocalización no es soportada por este navegador.');
+            if (!navigator.geolocation) {
+                resultado.innerHTML = '<span style="color:red;">Tu navegador no soporta geolocalización.</span>';
+                return;
             }
+
+            navigator.geolocation.getCurrentPosition((position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                const timestamp = Math.floor(Date.now() / 1000);
+                const url = `http://${ip}:${puerto}/?id=${id}&timestamp=${timestamp}&lat=${lat}&lon=${lon}`;
+
+                resultado.innerHTML = `
+                    <p><strong>URL generada:</strong></p>
+                    <a href="${url}" target="_blank">${url}</a>
+                    <p style="margin-top:10px;">Haz clic en el enlace para enviar el reporte.</p>
+                `;
+            }, (error) => {
+                resultado.innerHTML = '<span style="color:red;">Error al obtener la ubicación. Verifica los permisos.</span>';
+            });
         }
     </script>
 </body>
