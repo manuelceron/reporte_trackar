@@ -35,7 +35,7 @@
                     const timestamp = Math.floor(Date.now() / 1000); // Obtener el timestamp actual en segundos
                     const battery = 81.0; // Ajustar este valor si es necesario
                     
-                    const url = `http://${ipInput}:${portInput}/?id=${idInput}&timestamp=${timestamp}&lat=${latitude}&lon=${longitude}&speed=${speed}&bearing=${bearing}&altitude=${altitude}&accuracy=${accuracy}&batt=${battery}`;
+                    const url = `https://${ipInput}:${portInput}/?id=${idInput}&timestamp=${timestamp}&lat=${latitude}&lon=${longitude}&speed=${speed}&bearing=${bearing}&altitude=${altitude}&accuracy=${accuracy}&batt=${battery}`;
                     
                     fetch(url, {
                         method: 'POST',
