@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Traccar</title>
+</head>
+<body>
+    <input type="text" id="deviceId" placeholder="Ingresa el ID del dispositivo"><br>
+    <input type="text" id="ipAddress" placeholder="Ingresa la IP"><br>
+    <input type="text" id="port" placeholder="Ingresa el puerto"><br>
+    <button onclick="sendReport()">Enviar reporte</button>
+
+    <script>
+        function sendReport() {
+            const idInput = document.getElementById('deviceId').value;
+            const ipInput = document.getElementById('ipAddress').value;
+            const portInput = document.getElementById('port').value;
+
+            // Verificar si los campos IP, puerto e ID están completos
+            if (!idInput || !ipInput || !portInput) {
+                console.error('Por favor, complete todos los campos');
+                return;
+            }
+
+            // Verificar si el navegador soporta la geolocalización
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    const altitude = position.coords.altitude || 0;
+                    const speed = position.coords.speed || 0;
+                    const accuracy = position.coords.accuracy || 0;
+                    const bearing = position.coords.heading || 0;
+                    const timestamp = Math.floor(Date.now() / 1000); // Obtener el timestamp actual en segundos
+                    const battery = 81.0; // Ajustar este valor si es necesario
+                    
+                    const url = `http://${ipInput}:${portInput}/?id=${idInput}&timestamp=${timestamp}&lat=${latitude}&lon=${longitude}&speed=${speed}&bearing=${bearing}&altitude=${altitude}&accuracy=${accuracy}&batt=${battery}`;
+                    
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 14; V2349 Build/UP1A.231005.007)',
+                            'Connection': 'Keep-Alive',
+                            'Accept-Encoding': 'gzip'
+                        },
+                        body: ''
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log('Reporte enviado con éxito');
+                        } else {
+                            console.error('Error al enviar el reporte');
+                        }
+                    })
+                    .catch(error => console.error('Error en la solicitud:', error));
+                }, (error) => {
+                    console.error('Error al obtener la posición:', error);
+                });
+            } else {
+                console.error('La geolocalización no es soportada por este navegador.');
+            }
+        }
+    </script>
+</body>
+</html>
